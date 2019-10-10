@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarAlt, faTrashAlt, faPlus, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import './styles.css';
 import { CSSTransitionGroup } from 'react-transition-group';
 import Alert from './Alert';
@@ -19,6 +21,7 @@ const sortSymbols = {
 
 class App extends Component {
   state = {
+    id: null,
     name: '',
     list: [],
     deadline: '',
@@ -131,6 +134,13 @@ class App extends Component {
     this.setState({ sortDirection: direction }, () => this.sort());
   }
 
+  toggleMode = () => {
+    const htmlTag = document.documentElement;
+    htmlTag.className == 'darkMode' 
+      ? htmlTag.classList.remove("darkMode")
+      : htmlTag.className = 'darkMode'
+  }
+
   timeLeft = (deadline) => {
     const daysLeft = ((new Date(deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)).toFixed(0)
     return daysLeft > 0 ? `${daysLeft} day(s) left` : 'expired'
@@ -144,7 +154,7 @@ class App extends Component {
   };
 
   render() {
-    const { list, deadline, searchText, alert } = this.state;
+    const { list, deadline, searchText } = this.state;
     return (
       <main className="container">
         <h1 className="header"> Task Manager</h1>
@@ -157,8 +167,18 @@ class App extends Component {
 				</label>
         <div>
           <input className='inputStyle' onChange={e => this.setState({ name: e.target.value })} />
-          <button className='buttonStyle' onClick={this.addTask} style={{ display: 'inline-block', textAlign: "center" }}>Add</button>
-          <button className='itemButton' style={{ position: "absolute", color: "red", display: 'inline-block', marginLeft: "5px", padding: "10px", ...this.state.list.every(item => !item.isChecked) ? { visibility: 'hidden' } : { visibility: 'visible' } }} onClick={() => this.deleteSelectedTasks()}>Delete Selected</button>
+          <button
+            className='buttonStyle add'
+            onClick={this.addTask}
+          >
+            <FontAwesomeIcon icon={faPlus} /> Add
+          </button>
+          <button
+            className={`itemButton deleteSelected ${this.state.list.every(item => !item.isChecked) ? 'hide' : 'show'}`}
+            onClick={() => this.deleteSelectedTasks()}
+          >
+            <FontAwesomeIcon icon={faTrashAlt} /> Delete Selected
+          </button>
           <div className="sortContainer" onClick={this.toggleSortDirection}>
             <button className='buttonStyle'>Sort by Deadline</button>
             <button className='buttonStyle'>{sortSymbols[this.state.sortDirection]}</button>
@@ -205,23 +225,28 @@ class App extends Component {
                     />
                   ) : (
                       <button className="itemButton buttonAnimate" onClick={() => this.setState({ deadline: item.id })}>
-                        Add Deadline
+                        <FontAwesomeIcon icon={faCalendarAlt} /> Add Deadline
 									</button>
                     )}
                   <Select handleSelect={this.handleSelect} list={list} item={item} priority={item.priority} />
                   <button className="itemButton buttonAnimate" onClick={() => this.update(item.id)}>
-                    Update
+                    <FontAwesomeIcon icon={faSyncAlt} /> Update
 								</button>
-                  <button className='itemButton' style={item.isChecked ? { visibility: 'hidden', color: 'red' } : { visibility: 'visible', color: 'red' }} onClick={() => this.deleteTask(item.id)}>X</button>
+                  <button
+                    className={`itemButton red ${item.isChecked ? 'hide' : 'show'}`}
+                    onClick={() => this.deleteTask(item.id)}
+                  >
+                    <FontAwesomeIcon icon={faTrashAlt} />
+                  </button>
                 </li>)
             ))}
           </CSSTransitionGroup>
         </ol>
         <CSSTransitionGroup
-            transitionName="down"
-            transitionEnterTimeout={300}
-            transitionLeaveTimeout={300}
-          >
+          transitionName="down"
+          transitionEnterTimeout={300}
+          transitionLeaveTimeout={300}
+        >
           {this.state.alert.shown && (
             <Alert
               type={this.state.alert.type}
@@ -229,6 +254,9 @@ class App extends Component {
             />
           )}
         </CSSTransitionGroup>
+        <label className="nameMode">Toggle dark mode</label>
+        <input className="mode-input" id="buttonMode" type="checkbox" onClick={this.toggleMode} />
+        <label className="mode-btn" for="buttonMode"></label>
       </main>
     );
   }
